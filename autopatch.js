@@ -921,9 +921,17 @@ AutoPatcher.start = function() {
                 if (patcherConfig["branch"]) {
                     patchCommitNumberRange = commitCollector.getCommitNumbersForBranch(patcherConfig["branch"]);
                 } else if (patcherConfig["commit"]) {
+                    // Try to obtain commit count
                     var commitNumber = commitCollector.getCommitNumberForHash(patcherConfig["commit"]);
-                    if (patcherConfig["count"] && patcherConfig["count"] > 0) {
-                        patchCommitNumberRange = [ commitNumber, commitNumber + patcherConfig["count"] - 1 ];
+                    var count = parseInt(patcherConfig["count"] || 0);
+                    if (isNaN(count)) {
+                        console.log("Can't parse parameter count:", patcherConfig["count"]);
+                        return;
+                    }
+
+                    // Continue with specified count or patch just one commit if not given
+                    if (count > 0) {
+                        patchCommitNumberRange = [ commitNumber, commitNumber + count - 1 ];
                     } else {
                         patchCommitNumberRange = [ commitNumber, commitNumber ];
                     }
