@@ -1,2 +1,3 @@
 # Tools
-A set of small useful tools used for development
+
+A set of plugins and scripts used for development
