@@ -72,7 +72,7 @@ var saveFile = function(artboard, path) {
     }
 
     // Save json
-    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "coordinates": "scaled", "entries": entries }
+    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "totalWidth": artboard.frame.width, "totalHeight": artboard.frame.height, "entries": entries }
     const string = NSString.stringWithFormat("%@", JSON.stringify(json, 0, 2))
     string.writeToFile_atomically(path, true)
 }
