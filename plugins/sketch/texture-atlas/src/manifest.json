@@ -18,9 +18,24 @@
       "script": "./packspaced.js"
     },
     {
-      "name": "Save entries",
-      "identifier": "texture-atlas.save-entries-identifier",
-      "script": "./saveentries.js"
+      "name": "Arrange (tightly packed - 3x)",
+      "identifier": "texture-atlas.tightly-packed-3x-identifier",
+      "script": "./packtight3x.js"
+    },
+    {
+      "name": "Arrange (1 pixel spacing - 3x)",
+      "identifier": "texture-atlas.pixel-spacing-3x-identifier",
+      "script": "./packspaced3x.js"
+    },
+    {
+      "name": "Save entries (JSON)",
+      "identifier": "texture-atlas.save-entries-json-identifier",
+      "script": "./saveentriesjson.js"
+    },
+    {
+      "name": "Save entries (C# Unity)",
+      "identifier": "texture-atlas.save-entries-cs-identifier",
+      "script": "./saveentriescs.js"
     }
   ],
   "menu": {
@@ -28,7 +43,10 @@
     "items": [
       "texture-atlas.tightly-packed-identifier",
       "texture-atlas.pixel-spacing-identifier",
-      "texture-atlas.save-entries-identifier"
+      "texture-atlas.tightly-packed-3x-identifier",
+      "texture-atlas.pixel-spacing-3x-identifier",
+      "texture-atlas.save-entries-json-identifier",
+      "texture-atlas.save-entries-cs-identifier"
     ]
   }
 }

@@ -7,5 +7,5 @@ import process from './common'
 // --
 
 export default function() {
-    process(1, 1)
+    process(0, 3)
 }

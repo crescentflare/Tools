@@ -4,7 +4,7 @@ import sketch from 'sketch'
 // Main entry
 // --
 
-export default function process(layerSpacing) {
+export default function process(layerSpacing, multiplier) {
     // Get selected layers
     const doc = sketch.getSelectedDocument()
     const selectedLayers = doc.selectedLayers
@@ -43,18 +43,18 @@ export default function process(layerSpacing) {
 
     // Collect layer positions, show in text for debugging
     for (var i = 0; i < artboards.length; i++) {
-        arrangeArtboardAtlas(artboards[i], layerSpacing)
+        arrangeArtboardAtlas(artboards[i], layerSpacing, multiplier)
     }
 }
 
-var arrangeArtboardAtlas = function(artboard, layerSpacing) {
-    var grid = new FlexiblePlacementGrid(0, 0, layerSpacing)
+var arrangeArtboardAtlas = function(artboard, layerSpacing, multiplier) {
+    var grid = new FlexiblePlacementGrid(0, 0, layerSpacing, multiplier)
     var arrangeLayers = artboard.layers.slice()
     var placedLayers = []
     arrangeLayers.sort(function(a, b) { return Math.max(a.frame.width, a.frame.height) < Math.max(b.frame.width, b.frame.height) })
     for (var i = 0; i < arrangeLayers.length; i++) {
         var layer = arrangeLayers[i]
-        grid.increaseSizeIfNeeded(layer.frame.width, layer.frame.height)
+        grid.increaseSizeIfNeeded(layer.frame.width + layerSpacing, layer.frame.height + layerSpacing)
         for (var check = 0; check < 64; check++) {
             var placement = grid.findBestPosition(layer.frame.width + layerSpacing, layer.frame.height + layerSpacing)
             if (placement) {
@@ -80,8 +80,9 @@ var arrangeArtboardAtlas = function(artboard, layerSpacing) {
 
 class FlexiblePlacementGrid {
 
-    constructor(width, height, sideSpacing) {
+    constructor(width, height, sideSpacing, multiplier) {
         this.sideSpacing = sideSpacing || 0
+        this.multiplier = multiplier || 1
         this.horizontalGrid = [ 0 ]
         this.verticalGrid = [ 0 ]
         this.gridFlags = [[]]
@@ -114,9 +115,15 @@ class FlexiblePlacementGrid {
 
     doubleSize() {
         if (this.gridHeight < this.gridWidth) {
-            this.increaseHeight(this.gridHeight * 2 - this.sideSpacing)
+            var expandingHeight = this.getExpandingSize(this.gridHeight + 1, true)
+            if (expandingHeight) {
+                this.increaseHeight(expandingHeight)
+            }
         } else {
-            this.increaseWidth(this.gridWidth * 2 - this.sideSpacing)
+            var expandingWidth = this.getExpandingSize(this.gridWidth + 1, true)
+            if (expandingWidth) {
+                this.increaseWidth(expandingWidth)
+            }
         }
     }
 
@@ -368,7 +375,8 @@ class FlexiblePlacementGrid {
     getExpandingSize(size, power2Sizing) {
         if (power2Sizing) {
             var that = this
-            return [ 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 ].find(function(item) { return item >= size - that.sideSpacing } ) + this.sideSpacing
+            var result = [ 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 ].find(function(item) { return item >= (Math.ceil(size) - that.sideSpacing) * that.multiplier } );
+            return Math.floor(result / this.multiplier) + this.sideSpacing
         }
         return size > 0 ? size : null
     }

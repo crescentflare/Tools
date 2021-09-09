@@ -66,13 +66,17 @@ var saveFile = function(artboard, path) {
     var usedWidth = 0
     var usedHeight = 0
     for (var i = 0; i < artboard.layers.length; i++) {
-        entries.push({ "identifier": artboard.layers[i].name, "x": artboard.layers[i].frame.x, "y": artboard.layers[i].frame.y, "width": artboard.layers[i].frame.width, "height": artboard.layers[i].frame.height })
-        usedWidth = Math.max(usedWidth, artboard.layers[i].frame.x + artboard.layers[i].frame.width)
-        usedHeight = Math.max(usedHeight, artboard.layers[i].frame.y + artboard.layers[i].frame.height)
+        entries.push({ "identifier": artboard.layers[i].name, "x": Math.floor(artboard.layers[i].frame.x), "y": Math.floor(artboard.layers[i].frame.y), "width": Math.floor(artboard.layers[i].frame.width), "height": Math.floor(artboard.layers[i].frame.height) })
+        usedWidth = Math.max(usedWidth, Math.floor(artboard.layers[i].frame.x + artboard.layers[i].frame.width))
+        usedHeight = Math.max(usedHeight, Math.floor(artboard.layers[i].frame.y + artboard.layers[i].frame.height))
     }
 
     // Save json
-    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "totalWidth": artboard.frame.width, "totalHeight": artboard.frame.height, "entries": entries }
+    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "totalWidth": artboard.frame.width, "totalHeight": artboard.frame.height, "paddedWidth": getPaddedSize(artboard.frame.width), "paddedHeight": getPaddedSize(artboard.frame.height), "entries": entries }
     const string = NSString.stringWithFormat("%@", JSON.stringify(json, 0, 2))
     string.writeToFile_atomically(path, true)
+}
+
+var getPaddedSize = function(size) {
+    return [ 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 ].find(function(item) { return item >= size } );
 }
