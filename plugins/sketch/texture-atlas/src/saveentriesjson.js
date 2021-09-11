@@ -61,18 +61,36 @@ export default function() {
 }
 
 var saveFile = function(artboard, path) {
+    // Determine multiplier
+    var multiplier = 1
+    var exportFormats = artboard.exportFormats
+    if (exportFormats && exportFormats.length == 1 && exportFormats[0].size.length > 1) {
+        var exportFormat = exportFormats[0];
+        if (exportFormat.size.substring(exportFormat.size.length - 1) == "x") {
+            multiplier = parseFloat(exportFormat.size.substring(0, exportFormat.size.length - 1));
+        }
+    }
+
     // Set up entries
-    var entries = []
-    var usedWidth = 0
-    var usedHeight = 0
+    var entries = [];
+    var usedWidth = 0;
+    var usedHeight = 0;
+    var artboardWidth = Math.round(artboard.frame.width * multiplier);
+    var artboardHeight = Math.round(artboard.frame.height * multiplier);
     for (var i = 0; i < artboard.layers.length; i++) {
-        entries.push({ "identifier": artboard.layers[i].name, "x": Math.floor(artboard.layers[i].frame.x), "y": Math.floor(artboard.layers[i].frame.y), "width": Math.floor(artboard.layers[i].frame.width), "height": Math.floor(artboard.layers[i].frame.height) })
-        usedWidth = Math.max(usedWidth, Math.floor(artboard.layers[i].frame.x + artboard.layers[i].frame.width))
-        usedHeight = Math.max(usedHeight, Math.floor(artboard.layers[i].frame.y + artboard.layers[i].frame.height))
+        entries.push({
+            "identifier": artboard.layers[i].name,
+            "x": Math.round(artboard.layers[i].frame.x * multiplier),
+            "y": Math.round(artboard.layers[i].frame.y * multiplier),
+            "width": Math.round(artboard.layers[i].frame.width * multiplier),
+            "height": Math.round(artboard.layers[i].frame.height * multiplier)
+        })
+        usedWidth = Math.max(usedWidth, Math.round((artboard.layers[i].frame.x + artboard.layers[i].frame.width) * multiplier))
+        usedHeight = Math.max(usedHeight, Math.round((artboard.layers[i].frame.y + artboard.layers[i].frame.height) * multiplier))
     }
 
     // Save json
-    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "totalWidth": artboard.frame.width, "totalHeight": artboard.frame.height, "paddedWidth": getPaddedSize(artboard.frame.width), "paddedHeight": getPaddedSize(artboard.frame.height), "entries": entries }
+    var json = { "usedWidth": usedWidth, "usedHeight": usedHeight, "totalWidth": artboardWidth, "totalHeight": artboardHeight, "paddedWidth": getPaddedSize(artboardWidth), "paddedHeight": getPaddedSize(artboardHeight), "entries": entries }
     const string = NSString.stringWithFormat("%@", JSON.stringify(json, 0, 2))
     string.writeToFile_atomically(path, true)
 }

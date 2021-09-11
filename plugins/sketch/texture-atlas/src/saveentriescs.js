@@ -69,6 +69,16 @@ export default function() {
 }
 
 var saveFile = function(artboard, path) {
+    // Determine multiplier
+    var multiplier = 1
+    var exportFormats = artboard.exportFormats
+    if (exportFormats && exportFormats.length == 1 && exportFormats[0].size.length > 1) {
+        var exportFormat = exportFormats[0];
+        if (exportFormat.size.substring(exportFormat.size.length - 1) == "x") {
+            multiplier = parseFloat(exportFormat.size.substring(0, exportFormat.size.length - 1));
+        }
+    }
+
     // Determine filename
     var lastSlash = path.lastIndexOf("/");
     var filename = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
@@ -79,13 +89,21 @@ var saveFile = function(artboard, path) {
     }
 
     // Prepare entries
-    var entries = []
-    var usedWidth = 0
-    var usedHeight = 0
+    var entries = [];
+    var usedWidth = 0;
+    var usedHeight = 0;
+    var artboardWidth = Math.round(artboard.frame.width * multiplier);
+    var artboardHeight = Math.round(artboard.frame.height * multiplier);
     for (var i = 0; i < artboard.layers.length; i++) {
-        entries.push({ "identifier": artboard.layers[i].name, "x": Math.floor(artboard.layers[i].frame.x), "y": Math.floor(artboard.layers[i].frame.y), "width": Math.floor(artboard.layers[i].frame.width), "height": Math.floor(artboard.layers[i].frame.height) })
-        usedWidth = Math.max(usedWidth, Math.floor(artboard.layers[i].frame.x + artboard.layers[i].frame.width))
-        usedHeight = Math.max(usedHeight, Math.floor(artboard.layers[i].frame.y + artboard.layers[i].frame.height))
+        entries.push({
+            "identifier": artboard.layers[i].name,
+            "x": Math.round(artboard.layers[i].frame.x * multiplier),
+            "y": Math.round(artboard.layers[i].frame.y * multiplier),
+            "width": Math.round(artboard.layers[i].frame.width * multiplier),
+            "height": Math.round(artboard.layers[i].frame.height * multiplier)
+        })
+        usedWidth = Math.max(usedWidth, Math.round((artboard.layers[i].frame.x + artboard.layers[i].frame.width) * multiplier))
+        usedHeight = Math.max(usedHeight, Math.round((artboard.layers[i].frame.y + artboard.layers[i].frame.height) * multiplier))
     }
 
     // First source code part
@@ -101,50 +119,26 @@ var saveFile = function(artboard, path) {
         "    // Texture dimensions",
         "    // --",
         "",
-        "    public static float usedWidth = " + usedWidth + ";",
-        "    public static float usedHeight = " + usedHeight + ";",
-        "    public static float totalWidth = " + artboard.frame.width + ";",
-        "    public static float totalHeight = " + artboard.frame.height + ";",
-        "    public static float paddedWidth = " + getPaddedSize(artboard.frame.width) + ";",
-        "    public static float paddedHeight = " + getPaddedSize(artboard.frame.height) + ";",
+        "    public static Vector2 usedSize = new Vector2(" + usedWidth + ", " + usedHeight + ");",
+        "    public static Vector2 totalSize = new Vector2(" + artboardWidth + ", " + artboardHeight + ");",
+        "    public static Vector2 paddedSize = new Vector2(" + getPaddedSize(artboardWidth) + ", " + getPaddedSize(artboardHeight) + ");",
         "",
         "",
         "    // --",
         "    // Entries",
         "    // --",
         "",
-        "    public static Dictionary<string, Entry> entries = new Dictionary<string, Entry>() {"
+        "    public static Dictionary<string, Rect> entries = new Dictionary<string, Rect>() {"
     ];
 
     // Add entries
     for (var i = 0; i < entries.length; i++) {
-        sourceString.push('        { "' + entries[i]["identifier"] + '", new Entry(' + entries[i]["x"] + ', ' + entries[i]["y"] + ', ' + entries[i]["width"] + ', ' + entries[i]["height"] + ') }' + (i + 1 < entries.length ? ',' : ''));
+        sourceString.push('        { "' + entries[i]["identifier"] + '", new Rect(' + entries[i]["x"] + ', ' + entries[i]["y"] + ', ' + entries[i]["width"] + ', ' + entries[i]["height"] + ') }' + (i + 1 < entries.length ? ',' : ''));
     }
 
     // Final source part
     sourceString = sourceString.concat([
         "    };",
-        "",
-        "",
-        "    // --",
-        "    // Entry class",
-        "    // --",
-        "",
-        "    public class Entry {",
-        "",
-        "        public float x;",
-        "        public float y;",
-        "        public float width;",
-        "        public float height;",
-        "",
-        "        public Entry(float x, float y, float width, float height) {",
-        "            this.x = x;",
-        "            this.y = y;",
-        "            this.width = width;",
-        "            this.height = height;",
-        "        }",
-        "",
-        "    }",
         "",
         "}"
     ]);
